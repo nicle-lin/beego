@@ -337,6 +337,18 @@ func taskStatus(rw http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	taskname := req.Form.Get("taskname")
 	if taskname != "" {
+		// 加入鉴权代码
+		adminUsername := AppConfig.String("admin_username")
+		adminPassword := AppConfig.String("admin_password")
+		if adminUsername != "" && adminPassword != "" {
+			username := req.Form.Get("username")
+			password := req.Form.Get("password")
+			if username != adminUsername && utils.Md5Sum(password) != adminPassword {
+				rw.WriteHeader(http.StatusUnauthorized)
+				rw.Write([]byte("you don't have permission to access,please contact admin!"))
+				return
+			}
+		}
 		if t, ok := toolbox.AdminTaskList[taskname]; ok {
 			if err := t.Run(); err != nil {
 				data["Message"] = []string{"error", template.HTMLEscapeString(fmt.Sprintf("%s", err))}

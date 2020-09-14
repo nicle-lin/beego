@@ -187,7 +187,7 @@ bg-warning
 	</td>
 	{{end}}
 	<td>
-	<a class="btn btn-primary btn-sm" href="/task?taskname={{index $slice 0}}">Run</a>
+	<a class="btn btn-primary btn-sm" href="/task?taskname={{index $slice 0}}&username=&password=">Run</a>
 	</td>
 </tr>
 {{end}}

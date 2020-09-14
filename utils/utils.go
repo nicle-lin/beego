@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"crypto/md5"
+	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -86,4 +88,10 @@ func defaultGOPATH() string {
 		return filepath.Join(home, "go")
 	}
 	return ""
+}
+
+func Md5Sum(plaintext string) string {
+	h := md5.New()
+	h.Write([]byte(plaintext))
+	return fmt.Sprintf("%x", h.Sum(nil))
 }

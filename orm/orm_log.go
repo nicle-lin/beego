@@ -40,6 +40,13 @@ func NewLog(out io.Writer) *Log {
 }
 
 func debugLogQueies(alias *alias, operaton, query string, t time.Time, err error, args ...interface{}) {
+	if OnlyPrintFail && err == nil {
+		return
+	}
+	// 如果ExecuteTime不等于0，且执行的时间不超过ExecuteTime,则不打印日志
+	if err == nil && ExecuteTime > 0 && time.Now().Sub(t).Nanoseconds() < ExecuteTime.Nanoseconds() {
+		return
+	}
 	var logMap = make(map[string]interface{})
 	sub := time.Now().Sub(t) / 1e5
 	elsp := float64(int(sub)) / 10.0
@@ -61,7 +68,7 @@ func debugLogQueies(alias *alias, operaton, query string, t time.Time, err error
 		con += " - " + err.Error()
 	}
 	logMap["sql"] = fmt.Sprintf("%s-`%s`", query, strings.Join(cons, "`, `"))
-	if LogFunc != nil{
+	if LogFunc != nil {
 		LogFunc(logMap)
 	}
 	DebugLog.Println(con)

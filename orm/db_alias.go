@@ -227,6 +227,7 @@ type alias struct {
 	DataSource   string
 	MaxIdleConns int
 	MaxOpenConns int
+	MaxLifetime  time.Duration
 	DB           *DB
 	DbBaser      dbBaser
 	TZ           *time.Location
@@ -325,7 +326,7 @@ func AddAliasWthDB(aliasName, driverName string, db *sql.DB) error {
 }
 
 // RegisterDataBase Setting the database connect params. Use the database driver self dataSource args.
-func RegisterDataBase(aliasName, driverName, dataSource string, params ...int) error {
+func RegisterDataBase(aliasName, driverName, dataSource string, params ...int64) error {
 	var (
 		err error
 		db  *sql.DB
@@ -350,9 +351,11 @@ func RegisterDataBase(aliasName, driverName, dataSource string, params ...int) e
 	for i, v := range params {
 		switch i {
 		case 0:
-			SetMaxIdleConns(al.Name, v)
+			SetMaxIdleConns(al.Name, int(v))
 		case 1:
-			SetMaxOpenConns(al.Name, v)
+			SetMaxOpenConns(al.Name, int(v))
+		case 2:
+			SetMaxLifeTime(al.Name, time.Duration(v))
 		}
 	}
 
@@ -387,6 +390,13 @@ func SetDataBaseTZ(aliasName string, tz *time.Location) error {
 		return fmt.Errorf("DataBase alias name `%s` not registered", aliasName)
 	}
 	return nil
+}
+
+// SetMaxLifeTime Change the max life time for *sql.DB, use specify database alias name
+func SetMaxLifeTime(aliasName string, maxLifetime time.Duration) {
+	al := getDbAlias(aliasName)
+	al.MaxLifetime = maxLifetime
+	al.DB.DB.SetConnMaxLifetime(maxLifetime)
 }
 
 // SetMaxIdleConns Change the max idle conns for *sql.DB, use specify database alias name
@@ -424,9 +434,9 @@ func GetDB(aliasNames ...string) (*sql.DB, error) {
 }
 
 type stmtDecorator struct {
-	wg sync.WaitGroup
+	wg      sync.WaitGroup
 	lastUse int64
-	stmt *sql.Stmt
+	stmt    *sql.Stmt
 }
 
 func (s *stmtDecorator) getStmt() *sql.Stmt {
@@ -452,7 +462,7 @@ func (s *stmtDecorator) destroy() {
 
 func newStmtDecorator(sqlStmt *sql.Stmt) *stmtDecorator {
 	return &stmtDecorator{
-		stmt: sqlStmt,
+		stmt:    sqlStmt,
 		lastUse: time.Now().Unix(),
 	}
 }

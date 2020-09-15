@@ -72,7 +72,7 @@ const (
 // Define common vars
 var (
 	Debug            = false
-	OnlyPrintFail    = false
+	OnlyPrintFail    = false  // 是否只打印失败的SQL语句的日志
 	ExecuteTime      time.Duration // SQL执行的时间超过此时间就打印，如果没有超过不打印
 	DebugLog         = NewLog(os.Stdout)
 	DefaultRowsLimit = -1

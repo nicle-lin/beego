@@ -40,6 +40,7 @@ func NewLog(out io.Writer) *Log {
 }
 
 func debugLogQueies(alias *alias, operaton, query string, t time.Time, err error, args ...interface{}) {
+	// 如果只打印失败的，则直接返回
 	if OnlyPrintFail && err == nil {
 		return
 	}
